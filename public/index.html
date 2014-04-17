@@ -76,11 +76,11 @@
         $rootScope.$on( "routeChanged", function(event, next, current) {
           console.log('in root listener');
           if (sessionStorage.usersession != 'valid'){
-            if ( $rootScope.loggedUser == null ) {
+            //if ( $rootScope.loggedUser == null ) {
               // no logged user, we should be going to #login
                 console.log('no session so redirecting to login page')
                 $location.path( "/login" );
-            }   
+            //}   
           }      
         });
 
