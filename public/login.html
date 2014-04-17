@@ -1,0 +1,9 @@
+<h2>Login Page</h2>
+
+User name: <input type="text" id="username" ng-model="username" ><br/><br/>
+Password: <input type="text" id="password" ng-model="password" ><br/><br/>
+<input type="button" id="createButton" value="Login" ng-click="attemptLogin()">
+<span>&nbsp;(Type in the same username and password to log in)</span>
+
+<p style="color:red;margin-top:20px">{{loginError}}</p>
+

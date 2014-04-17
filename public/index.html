@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html ng-app="myapp">
+
+<head>
+    <title>AngularJS: UI-Router Quick Start</title>
+    <!-- Bootstrap CSS -->
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="container">
+  <!-- <div class="row" ang-controller="AppCtrl"> (see below why I tried to use this) -->
+  <div class="row" > 
+    <div class="span12">
+      <div class="well" ui-view></div>        
+    </div>
+  </div>         
+  
+  <!-- Angular -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular.js"></script>
+  <!-- UI-Router -->
+  <script src="http://angular-ui.github.io/ui-router/release/angular-ui-router.js"></script>
+  
+  <!-- App Script -->
+  <script>
+    var myapp = angular.module('myapp', ["ui.router"])
+    myapp.config(function($stateProvider, $urlRouterProvider){
+      
+      // For any unmatched url, send to /login
+      $urlRouterProvider.otherwise("/login")
+
+      
+      $stateProvider
+
+        .state('login', {
+            url: "/login",
+            templateUrl: "login.html",
+            controller: 'Login'
+        })
+
+
+        .state('route1', {
+            url: "/route1",
+            templateUrl: "route1.html",
+            controller: 'Route1'
+            //instead of defining the controller externally it can also be defined right here
+            // controller: function($scope){
+            //     $scope.$emit('routeChanged');
+            // }
+
+        })
+          .state('route1.list', {
+              url: "/list",
+              templateUrl: "route1.list.html",
+              controller: function($scope){
+                $scope.$emit('routeChanged');
+                $scope.items = ["A", "List", "Of", "Items"];
+              }
+          })
+          
+        .state('route2', {
+            url: "/route2",
+            templateUrl: "route2.html",
+            controller: 'Route2'
+        })
+          .state('route2.list', {
+              url: "/list",
+              templateUrl: "route2.list.html",
+              controller: 'Route2List'
+          })
+    })
+
+
+
+    myapp.run( function($rootScope, $location) {
+        // register listener to watch route changes
+        $rootScope.$on( "routeChanged", function(event, next, current) {
+          console.log('in root listener');
+          if (sessionStorage.usersession != 'valid'){
+            if ( $rootScope.loggedUser == null ) {
+              // no logged user, we should be going to #login
+                console.log('no session so redirecting to login page')
+                $location.path( "/login" );
+            }   
+          }      
+        });
+
+        //and in the app module, within the run function i handle the broadcasting of the saveState and restoreState
+
+        // $rootScope.$on("$routeChangeStart", function (event, next, current) {
+        //     console.log('in other part of root listener');
+        //     if (sessionStorage.restorestate == "true") {
+        //         $rootScope.$broadcast('restorestate'); //let everything know we need to restore state
+        //         sessionStorage.restorestate = false;
+        //     }
+        // });
+
+        //let everthing know that we need to save state now.
+        // window.onbeforeunload = function (event) {
+        //     $rootScope.$broadcast('savestate');
+        // };
+
+
+
+    })
+    //-----------Controller-----------------
+      //the below never get triggered.  It works with an ng-view router
+      //as demoed in http://www.thinkster.io/angularjs/0WbrOy5nIE/angularjs-route-life-cycle
+      //but not with the ui-router.
+      // myapp.controller("AppCtrl", function ($scope, $rootScope, $route, $location) {
+      //   $rootScope.$on("$routeChangeStart", function (event, current, previous, rejection) {
+      //     // Step 2, route change starts, no promises have been resolved yet
+      //     console.log('step 2');
+      //     console.log($scope, $rootScope, $route, $location);
+      //   });
+      //   $rootScope.$on("$routeChangeSuccess", function (event, current, previous, rejection) {
+      //     // Step 3, route is successfully changed, UI has not been updated yet
+      //     console.log('step 3');
+      //     console.log($scope, $rootScope, $route, $location);
+      //   });
+      // });
+
+
+    //---------------Service-------------------------------------------------
+
+    myapp.factory('userService', ['$rootScope', function ($rootScope) {
+
+    var service = {
+
+        model: [{
+            name: 'luke',
+            email: 'luke@weber.edu'
+        }],
+
+
+        // SaveState: function () {
+        //     sessionStorage.userService = angular.toJson(service.model);
+        // },
+
+        // RestoreState: function () {
+        //     service.model = angular.fromJson(sessionStorage.userService);
+        // }
+    }
+
+    // $rootScope.$on("savestate", service.SaveState);
+    // $rootScope.$on("restorestate", service.RestoreState);
+
+    return service;
+    }]);
+
+
+
+    //---------------Controllers---------------------------------------------
+
+    myapp.controller('Login', function($scope, $location, $rootScope){
+                      console.log('in logincontroller');
+
+                      $scope.username = 'foo';
+                      $scope.password = 'foo';
+                      $scope.attemptLogin = function() {
+                        if ( $scope.username == $scope.password ) { // test
+                            $rootScope.loggedUser = $scope.username;
+                            sessionStorage.usersession = 'valid';
+                            $location.path( "/route1" );
+                        } 
+                        // else 
+                        // if (sessionStorage.usersession == 'valid'){
+                        //     console.log('valid session...do nothing');
+                        // }
+                        else
+                        {
+                          $rootScope.loggedUser = null;
+                            $scope.loginError = "Invalid user/pass.";
+                        }
+                      };
+    })
+
+    myapp.controller('Route1', function($scope, $location, userService){
+                $scope.$emit('routeChanged');
+                $scope.logout = function(){
+                  sessionStorage.usersession = '';
+                  console.log('logging out user....sessionstorage changed');
+                  $location.path( "/" );
+                }
+    })
+
+
+    myapp.controller('Route2', function($scope, userService){
+
+                $scope.$emit('routeChanged');
+    })
+
+
+    myapp.controller('Route2List', function($scope, userService){
+                $scope.$emit('routeChanged');
+
+                //$scope.user = userService;
+                $scope.users = userService;
+
+                $scope.things = ["A", "Set", "Of", "Things"];
+
+                $scope.clickMe = function(){
+                  //userService.model = {name: 'susan',email: 'susan@weber.edu'}
+                  userService.model = [{name: 'susan',email: 'susan@weber.edu'},{name: 'jo',email: 'jo@jo.edu'}];
+                  console.log('model updated');
+                  console.log(userService.model);
+                }
+    })
+
+
+
+  </script>
+
+</body>
+
+</html>
