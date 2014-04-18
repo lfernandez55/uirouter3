@@ -2,19 +2,31 @@
 <html ng-app="myapp">
 
 <head>
-    <title>AngularJS: UI-Router Quick Start</title>
+    <title>My UI Router</title>
     <!-- Bootstrap CSS -->
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    logout{float:right;display:inline-block;margin:5px;}
+    .nav:hover{cursor:pointer;}
+    .navbar-inner{clear:both;}
+    .logStatus-out{display:none;}
+    .logStatus-in{display:block;}
+    </style>
 </head>
 
 <body class="container">
-  <!-- <div class="row" ang-controller="AppCtrl"> (see below why I tried to use this) -->
-  <div class="row" > 
-    <div class="span12">
-      <div class="well" ui-view></div>        
-    </div>
-  </div>         
   
+  <!-- <div class="row" ang-controller="AppCtrl"> (see below why I tried to use this) -->
+  <div ang-controller="AppCtrl">
+    <div class="row" > 
+      <div class="span12">
+        <logout class='logStatus-{{logStatus}}' ></logout>
+        <div class="well" ui-view>
+            
+        </div>        
+      </div>
+    </div>         
+  </div>
   <!-- Angular -->
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular.js"></script>
   <!-- UI-Router -->
@@ -84,6 +96,14 @@
           }      
         });
 
+        $rootScope.logStatus = 'out';
+
+        $rootScope.$on( "loggedIn", function(event, next, current) {
+          console.log('in loggedIn listener...');
+          $rootScope.logStatus = 'in';
+               
+        });
+
         //and in the app module, within the run function i handle the broadcasting of the saveState and restoreState
 
         // $rootScope.$on("$routeChangeStart", function (event, next, current) {
@@ -151,6 +171,14 @@
 
     //---------------Controllers---------------------------------------------
 
+    myapp.controller("AppCtrl", function ($scope, $rootScope, $route, $location) {
+      $rootScope.$on( "loggedIn", function(event, next, current) {
+          console.log('in appCtrl..........listening triggered!');
+               
+        });
+    });
+
+
     myapp.controller('Login', function($scope, $location, $rootScope){
                       console.log('in logincontroller');
 
@@ -161,6 +189,7 @@
                             $rootScope.loggedUser = $scope.username;
                             sessionStorage.usersession = 'valid';
                             $location.path( "/route1" );
+                            $scope.$emit('loggedIn');
                         } 
                         // else 
                         // if (sessionStorage.usersession == 'valid'){
@@ -174,12 +203,19 @@
                       };
     })
 
-    myapp.controller('Route1', function($scope, $location, userService){
+    myapp.controller('Route1', function($scope, $location, userService, $state){
                 $scope.$emit('routeChanged');
                 $scope.logout = function(){
                   sessionStorage.usersession = '';
                   console.log('logging out user....sessionstorage changed');
                   $location.path( "/" );
+                  // console.log('changing state');
+                  // $state.go('route2.list')
+                }
+
+                $scope.drilldown = function(){
+                  console.log('alternate drilling down');
+                  $state.go('route1.list')
                 }
     })
 
@@ -205,6 +241,25 @@
                   console.log(userService.model);
                 }
     })
+
+    //--------------- Directives ---------------------------------------------------//
+
+      myapp.directive('logout', function () {
+            return {
+              restrict: 'E',
+              //scope:{date:'='},
+              scope:{area: '@'},
+              template: "<button ng-click='logout()'>Log Out</button> ",
+              controller: function($scope, $element, $location, $rootScope){
+                $scope.logout = function(){
+                    sessionStorage.usersession = '';
+                    console.log('logging out user....sessionstorage changed');
+                    $location.path( "/" );
+                    $rootScope.logStatus='out';
+                };
+              }
+            };
+      });
 
 
 

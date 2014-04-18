@@ -1,8 +1,11 @@
 <div class="navbar">
+<!-- <input type='button' ng-click='logout()' style="float:right" value="Log Out"> -->	
+
 <div class="navbar-inner">
-  <input type='button' ng-click='logout()' style="float:right" value="Log Out">	
+  	
   <ul class="nav">
     <li><a ui-sref="route1">Route 1</a></li>
+    <li><a ng-click="drilldown()" class="nav">Route 1 Log Nesting</a></li>
     <li><a ui-sref="route2">Route 2</a></li>
   </ul>
 </div>
