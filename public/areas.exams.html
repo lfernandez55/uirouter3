@@ -1,0 +1,15 @@
+<h3>Exams:</h3>
+
+
+
+<ul>
+    <li ng-repeat="test in tests.model " >
+      <a ui-sref=".exam({examId:test.id})">{{test.name}}</a> 
+    </li>
+</ul>
+
+<!-- <a ui-sref=".exam({examId:1})">Exam 1</a> -->  
+
+<hr/>
+
+<div ui-view></div>

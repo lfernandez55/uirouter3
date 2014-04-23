@@ -1,0 +1,17 @@
+<div class="navbar">
+<!-- <input type='button' ng-click='logout()' style="float:right" value="Log Out"> x -->	
+
+<div class="navbar-inner">
+  <h1>Areas</h1>
+  <ul class="nav">
+    <!-- <li><a ui-sref=".exams">Exams</a></li> -->
+    <li><a ng-click="drilldown('exams')" class="nav">Exams</a></li>
+    <li><a ui-sref=".evals">Evals</a></li>
+  </ul>
+</div>
+</div>
+
+<div ui-view></div> 
+
+
+

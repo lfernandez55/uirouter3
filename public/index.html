@@ -49,44 +49,76 @@
             controller: 'Login'
         })
 
-
-        .state('route1', {
-            url: "/route1",
-            templateUrl: "route1.html",
-            controller: 'Route1'
-            //instead of defining the controller externally it can also be defined right here
-            // controller: function($scope){
-            //     $scope.$emit('routeChanged');
-            // }
-
+        .state('areas', {
+            url: "/areas",
+            templateUrl: "areas.html",
+            controller: 'Areas'
         })
-          .state('route1.list', {
-              url: "/list",
-              templateUrl: "route1.list.html",
-              controller: function($scope){
-                $scope.$emit('routeChanged');
-                $scope.items = ["A", "List", "Of", "Items"];
-              }
-          })
+
+            .state('areas.exams', {
+                url: "/exams",
+                templateUrl: "areas.exams.html",
+                controller: 'Exams'
+            })
+
+                .state('areas.exams.exam', {
+                    //url: "/exam",
+                    url: "/{examId:[0-9]{1,8}}",
+                    //url: "",
+                    templateUrl: "areas.exams.exam.html",
+                    controller: 'Exam'
+                })
+
+            .state('areas.evals', {
+                url: "/evals",
+                templateUrl: "areas.evals.html",
+                controller: 'Evals'
+            })
+
+
+
+        // .state('route1', {
+        //     url: "/route1",
+        //     templateUrl: "route1.html",
+        //     controller: 'Route1'
+        //     //instead of defining the controller externally it can also be defined right here
+        //     // controller: function($scope){
+        //     //     $scope.$emit('routeChanged');
+        //     // }
+
+        // })
+        //   .state('route1.list', {
+        //       url: "/list",
+        //       templateUrl: "route1.list.html",
+        //       controller: function($scope){
+        //         $scope.$emit('routeChanged');
+        //         $scope.items = ["A", "List", "Of", "Items"];
+        //       }
+        //   })
           
-        .state('route2', {
-            url: "/route2",
-            templateUrl: "route2.html",
-            controller: 'Route2'
-        })
-          .state('route2.list', {
-              url: "/list",
-              templateUrl: "route2.list.html",
-              controller: 'Route2List'
-          })
+        // .state('route2', {
+        //     url: "/route2",
+        //     templateUrl: "route2.html",
+        //     controller: 'Route2'
+        // })
+        //   .state('route2.list', {
+        //       url: "/list",
+        //       templateUrl: "route2.list.html",
+        //       controller: 'Route2List'
+        //   })
     })
 
-
+    
 
     myapp.run( function($rootScope, $location) {
+
+        $rootScope.locationlog = new Array;
+
         // register listener to watch route changes
         $rootScope.$on( "routeChanged", function(event, next, current) {
           console.log('in root listener');
+          $rootScope.locationlog.push($location.url());
+          console.log($rootScope.locationlog);
           if (sessionStorage.usersession != 'valid'){
             //if ( $rootScope.loggedUser == null ) {
               // no logged user, we should be going to #login
@@ -167,7 +199,31 @@
     return service;
     }]);
 
+    myapp.factory('examsService', ['$rootScope', function ($rootScope) {
 
+    var service = {
+
+        model: [{
+            id: '0',
+            name: 'Hist 1700 Matt Quiz 1'
+        },
+        {
+            id: '1',
+            name: 'CS 2350 Fernandez Test 1'
+        },
+        {
+            id: '2',
+            name: 'IST 1100 Fernandez Test 1'
+        },
+        {
+            id: '3',
+            name: 'Hist 1700 Matt Quiz 2'
+        }
+
+        ]
+    }
+    return service;
+    }]);
 
     //---------------Controllers---------------------------------------------
 
@@ -188,7 +244,9 @@
                         if ( $scope.username == $scope.password ) { // test
                             $rootScope.loggedUser = $scope.username;
                             sessionStorage.usersession = 'valid';
-                            $location.path( "/route1" );
+                            $location.path( "/areas" );
+                            //$location.path( "/route1" );
+                            
                             $scope.$emit('loggedIn');
                         } 
                         // else 
@@ -202,6 +260,60 @@
                         }
                       };
     })
+
+
+    myapp.controller('Areas', function($scope, $location, $rootScope, userService){
+
+                $scope.$emit('routeChanged2');
+                console.log($location);
+                //var that = $location;
+                //$location.path( "/areas/exams/3" );
+                $scope.drilldown = function(nodeVar){
+                  console.log('alternate drilling down');
+                  console.log($rootScope.locationlog);
+                  //var newPath = "/areas/exams";
+                  var newPath = "/areas/" + nodeVar;
+                  for (var i = $rootScope.locationlog.length - 1; i >= 0; i--) {
+                    console.log('debug1');
+                    if ($rootScope.locationlog[i].indexOf(nodeVar) > 0){
+                      newPath = $rootScope.locationlog[i];
+                      console.log('debug2: ' + newPath);
+                      break;
+                    } 
+                  };
+                  console.log('just before change: ' + newPath);
+                  $location.path( newPath );
+                  //console.log($rootScope);
+                  //$location.path( "/areas/exams/3" );
+                  //$state.go('areas.exams/3')
+                }
+
+    })
+
+    myapp.controller('Exams', function($scope, examsService){
+
+                $scope.$emit('routeChanged');
+                $scope.tests = examsService;
+                console.log($scope.tests);
+    })
+
+    myapp.controller('Evals', function($scope, userService){
+
+                $scope.$emit('routeChanged');
+    })
+
+
+    myapp.controller('Exam', function($scope, $location, examsService){
+
+                $scope.$emit('routeChanged');
+                console.log($location.url())
+                //get last parameter in url to retrieve the testname
+                var urlArray = $location.url().split('/');
+                var testsArray = examsService;
+                console.log(testsArray.model[urlArray[3]].name);
+                $scope.testname = testsArray.model[urlArray[3]].name;
+    })
+
 
     myapp.controller('Route1', function($scope, $location, userService, $state){
                 $scope.$emit('routeChanged');
